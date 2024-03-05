@@ -1,31 +1,49 @@
-import {StyleSheet, Text, View} from 'react-native';
+import {StyleSheet, Text, View, Alert} from 'react-native';
 import ButtonIcon from './ButtonIcon';
 import {theme} from '../core/theme';
 import {useState} from 'react';
-import TextInput from './TextInput';
 import AddCategory from './AddCategory';
 import {Category} from 'src/types/category';
 import firestore from '@react-native-firebase/firestore';
 
 interface ItemProps {
   item: Category;
-  setNewCategory: () => void;
+  refreshCategoryList: () => void;
 }
-const CategoryItemRow = ({item, setNewCategory}: ItemProps) => {
+
+const CategoryItemRow = ({item, refreshCategoryList}: ItemProps) => {
   const [edit, setEdit] = useState(false);
 
-  const onhandleDelete = () => {
-    firestore()
-      .collection('category')
-      .doc(item.id.toString())
-      .delete()
-      .then(() => {
-        setNewCategory();
-        console.log('Document successfully deleted!');
-      })
-      .catch(error => {
-        console.error('Error deleting document: ', error);
-      });
+  const handleDelete = () => {
+    Alert.alert(
+      'Delete Category',
+      'Are you sure you want to delete this category?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: () => {
+            firestore()
+              .collection('category')
+              .doc(item.id.toString())
+              .delete()
+              .then(() => {
+                refreshCategoryList();
+                console.log('Document successfully deleted!');
+              })
+              .catch(error => {
+                console.error('Error deleting document: ', error);
+                Alert.alert('Error', 'Failed to delete category');
+              });
+          },
+        },
+      ],
+      {cancelable: true},
+    );
   };
 
   return (
@@ -34,7 +52,7 @@ const CategoryItemRow = ({item, setNewCategory}: ItemProps) => {
         <AddCategory
           setEdit={() => setEdit(false)}
           categoryObject={item}
-          setNewCategory={setNewCategory}
+          refreshCategoryList={refreshCategoryList}
         />
       ) : (
         <>
@@ -45,7 +63,7 @@ const CategoryItemRow = ({item, setNewCategory}: ItemProps) => {
             handleonPress={() => setEdit(true)}
             icon={'playlist-edit'}
           />
-          <ButtonIcon handleonPress={onhandleDelete} icon={'delete'} />
+          <ButtonIcon handleonPress={handleDelete} icon={'delete'} />
         </>
       )}
     </View>
@@ -69,6 +87,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 10,
   },
 });
 

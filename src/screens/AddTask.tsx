@@ -1,17 +1,18 @@
-import TextInput from '../components/TextInput';
 import React, {useEffect, useState} from 'react';
-import Button from '../components/Button';
-import Background from '../components/Layout';
-import Dropdown from '../components/Picker';
-import DatePicker from '../components/DatePicker';
-import moment from 'moment';
-import ErrorComponent from '../components/Error';
 import {useAppDispatch, useAppSelector} from '../hooks/hooks';
-import firestore from '@react-native-firebase/firestore';
 import {fetchAllCategory} from '../store/slices/categorySlice';
 import {Category} from '../types/category';
+import Background from '../components/Layout';
+import Button from '../components/Button';
+import DatePicker from '../components/DatePicker';
+import Dropdown from '../components/Picker';
+import ErrorComponent from '../components/Error';
+import TextInput from '../components/TextInput';
+import firestore from '@react-native-firebase/firestore';
+import moment from 'moment';
 
 const AddTaskScreen = ({navigation, route}: any) => {
+  // State variables
   const [title, setTitle] = useState(route.params?.task?.title ?? '');
   const [description, setDescription] = useState(
     route.params?.task?.description ?? '',
@@ -26,38 +27,29 @@ const AddTaskScreen = ({navigation, route}: any) => {
   );
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Redux hooks
   const userId = useAppSelector(state => state.auth.userId);
   const dispatch = useAppDispatch();
+  const {categoryList} = useAppSelector(state => state.category);
 
-  const getCategoryist = async () => {
-    const category = await firestore().collection('category').get();
-
-    const taskArray = category.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-    }));
-    dispatch(fetchAllCategory(taskArray as unknown as Category[]));
-  };
-
+  // Fetch categories
   useEffect(() => {
-    getCategoryist();
+    const getCategoryList = async () => {
+      const categorySnapshot = await firestore().collection('category').get();
+      const categoryData = categorySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      dispatch(fetchAllCategory(categoryData as unknown as Category[]));
+    };
+    getCategoryList();
   }, []);
 
-  const {categoryList, loading, error} = useAppSelector(
-    state => state.category,
-  );
-
-  const _onAddTaskPressed = () => {
-    if (!title.trim() && !description.trim()) {
+  // Function to handle task addition or update
+  const handleTaskAction = () => {
+    // Validations
+    if (!title.trim() || !description.trim()) {
       setErrorMessage('Please enter Title and Description');
-      return;
-    }
-    if (!title.trim()) {
-      setErrorMessage('Please enter Title');
-      return;
-    }
-    if (!description.trim()) {
-      setErrorMessage('Please enter Description');
       return;
     }
 
@@ -69,49 +61,39 @@ const AddTaskScreen = ({navigation, route}: any) => {
       category: selectedValue,
     };
 
+    // Add or update task
+    const tasksCollection = firestore().collection('tasks');
     if (route.params?.task?.id) {
-      firestore()
-        .collection('tasks')
+      tasksCollection
         .doc(route.params?.task?.id)
         .update(taskObject)
         .then(() => {
           navigation.setParams({task: null});
-          console.log('Task added with ID: ');
           navigation.navigate('Task List');
         })
-        .catch((error: any) => {
-          console.error('Error adding task: ', error);
-          setErrorMessage('Error adding task');
+        .catch(error => {
+          console.error('Error updating task: ', error);
+          setErrorMessage('Error updating task');
         });
     } else {
-      firestore()
-        .collection('tasks')
+      tasksCollection
         .add(taskObject)
-        .then((docRef: {id: any}) => {
-          console.log('Task added with ID: ', docRef.id);
+        .then(() => {
           navigation.navigate('Task List');
         })
-        .catch((error: any) => {
+        .catch(error => {
           console.error('Error adding task: ', error);
           setErrorMessage('Error adding task');
         });
     }
   };
 
+  // Handler for category selection change
   const handleValueChange = (value: string[]) => {
     setSelectedValue(value);
   };
 
-  //   useEffect(() => {
-  //     const removeParams = () => {
-  //       navigation.setParams({task: null});
-  //     };
-
-  //     const unsubscribe = navigation.addListener('beforeRemove', removeParams);
-
-  //     return unsubscribe;
-  //   }, [navigation]);
-
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       navigation.setParams({task: null});
@@ -141,10 +123,11 @@ const AddTaskScreen = ({navigation, route}: any) => {
         value={selectedValue}
         onValueChange={handleValueChange}
       />
-      <Button mode="contained" onPress={_onAddTaskPressed}>
+      <Button mode="contained" onPress={handleTaskAction}>
         {route.params?.task?.id ? 'Edit Task' : 'Add Task'}
       </Button>
     </Background>
   );
 };
+
 export default AddTaskScreen;

@@ -1,9 +1,9 @@
-import React, {useState} from 'react';
+import React, {useState, useCallback} from 'react';
+import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import Background from './Layout';
 import Header from './Header';
 import ErrorComponent from './Error';
 import TextInput from './TextInput';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {theme} from '../core/theme';
 import Button from './Button';
 import LinkText from './LinkText';
@@ -31,29 +31,31 @@ const Form = ({
   const [password, setPassword] = useState({value: '', error: ''});
   const [errorMessage, setErrorMessage] = useState('');
 
-  const onPressNavigation = () => {
+  // Memoized navigation handler
+  const onPressNavigation = useCallback(() => {
     navigation.navigate(navButtonLabel);
-  };
+  }, [navigation, navButtonLabel]);
 
-  const onChangeUsername = (value: string) => {
+  // Memoized onChange handlers
+  const onChangeUsername = useCallback((value: string) => {
     if (value.trim().length > 0) {
       setUsername({value: value, error: ''});
     } else {
       setUsername({value: '', error: 'Please enter username'});
     }
-  };
+  }, []);
 
-  const onChangePassword = (value: string) => {
+  const onChangePassword = useCallback((value: string) => {
     if (value.trim().length > 0) {
       setPassword({value: value, error: ''});
     } else {
       setPassword({value: '', error: 'Please enter password'});
     }
-  };
+  }, []);
 
   return (
     <Background>
-      <Header>Task Managment</Header>
+      <Header>Task Management</Header>
       {errorMessage && <ErrorComponent message={errorMessage} />}
       <TextInput
         label="Username"
@@ -93,6 +95,7 @@ const Form = ({
     </Background>
   );
 };
+
 const styles = StyleSheet.create({
   forgotPassword: {
     width: '100%',

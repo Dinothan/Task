@@ -19,7 +19,7 @@ const TextInput: React.FC<TextInputProps> = ({errorText, ...props}) => (
       mode="outlined"
       {...props}
     />
-    {errorText ? <Text style={styles.error}>{errorText}</Text> : null}
+    {errorText && <Text style={styles.error}>{errorText}</Text>}
   </View>
 );
 

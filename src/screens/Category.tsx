@@ -1,10 +1,10 @@
-import {useEffect} from 'react';
+import {useEffect, useCallback} from 'react';
+import {View, StyleSheet} from 'react-native';
+import {FlatList} from 'react-native-gesture-handler';
 import firestore from '@react-native-firebase/firestore';
 import {fetchAllCategory} from '../store/slices/categorySlice';
 import {Category} from '../types/category';
 import {useAppDispatch, useAppSelector} from '../hooks/hooks';
-import {FlatList} from 'react-native-gesture-handler';
-import {ScrollView, StyleSheet} from 'react-native';
 import AddCategory from '../components/AddCategory';
 import Header from '../components/Header';
 import Background from '../components/Layout';
@@ -13,43 +13,47 @@ import Spinner from '../components/Spinner';
 
 const CategoryScreen = ({navigation}: any) => {
   const dispatch = useAppDispatch();
-  const getCategoryist = async () => {
-    const category = await firestore().collection('category').get();
 
-    const taskArray = category.docs.map(doc => ({
+  const getCategoryList = useCallback(async () => {
+    const category = await firestore().collection('category').get();
+    const categoryData = category.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
     }));
-    dispatch(fetchAllCategory(taskArray as unknown as Category[]));
-  };
+    dispatch(fetchAllCategory(categoryData as unknown as Category[]));
+  }, [dispatch]);
+
   useEffect(() => {
-    getCategoryist();
-  }, []);
+    getCategoryList();
+  }, [getCategoryList]);
 
   const {categoryList, loading, error} = useAppSelector(
     state => state.category,
   );
 
-  const setNewCategory = () => {
-    getCategoryist();
-  };
+  const refreshCategoryList = useCallback(() => {
+    getCategoryList();
+  }, [getCategoryList]);
 
   return (
     <Background>
-      <AddCategory setNewCategory={setNewCategory} />
+      <AddCategory refreshCategoryList={refreshCategoryList} />
       <Header>Category List</Header>
       {loading ? (
         <Spinner />
       ) : (
-        <ScrollView style={styles.listContainer}>
+        <View style={styles.listContainer}>
           <FlatList
             data={categoryList}
             renderItem={({item}) => (
-              <CategoryItemRow item={item} setNewCategory={setNewCategory} />
+              <CategoryItemRow
+                item={item}
+                refreshCategoryList={refreshCategoryList}
+              />
             )}
-            keyExtractor={item => item.id.toString()}
+            keyExtractor={item => `category-${item.id}`}
           />
-        </ScrollView>
+        </View>
       )}
     </Background>
   );

@@ -6,13 +6,13 @@ import {StyleSheet, View} from 'react-native';
 import {Category} from '../types/category';
 
 interface AddCategoryProps {
-  setNewCategory: () => void;
+  refreshCategoryList: () => void;
   categoryObject?: Category;
   setEdit?: () => void;
 }
 
 const AddCategory = ({
-  setNewCategory,
+  refreshCategoryList,
   categoryObject,
   setEdit,
 }: AddCategoryProps) => {
@@ -21,7 +21,7 @@ const AddCategory = ({
 
   const onSaveCategory = () => {
     if (!category.trim()) {
-      setErrorMessage('Please enter Category');
+      setErrorMessage('Please enter a category');
       return;
     }
 
@@ -31,20 +31,23 @@ const AddCategory = ({
         .doc(categoryObject.id.toString())
         .update({name: category})
         .then(() => {
-          setNewCategory();
+          refreshCategoryList();
           setEdit && setEdit();
+          setErrorMessage('');
+          setCategory(''); // Clear input field
         })
         .catch((error: any) => {
-          console.error('Error adding category: ', error);
-          setErrorMessage('Error adding category');
+          console.error('Error editing category: ', error);
+          setErrorMessage('Error editing category');
         });
     } else {
       firestore()
         .collection('category')
         .add({name: category})
-        .then((docRef: {id: any}) => {
-          setNewCategory();
-          setCategory('');
+        .then(() => {
+          refreshCategoryList();
+          setErrorMessage('');
+          setCategory(''); // Clear input field
         })
         .catch((error: any) => {
           console.error('Error adding category: ', error);

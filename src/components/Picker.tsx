@@ -7,26 +7,34 @@ interface DropdownProps {
   onValueChange: (value: string[]) => void;
 }
 
-const Dropdown = ({category, value, onValueChange}: DropdownProps) => {
+const Dropdown: React.FC<DropdownProps> = ({
+  category,
+  value,
+  onValueChange,
+}) => {
+  // Function to toggle category selection
   const toggleSelection = (item: string) => {
     const newValue = value.includes(item)
-      ? value.filter(selectedItem => selectedItem !== item)
-      : [...value, item];
+      ? value.filter(selectedItem => selectedItem !== item) // Deselect category
+      : [...value, item]; // Select category
     onValueChange(newValue);
   };
 
   return (
     <>
+      {/* Header */}
       <View style={styles.header}>
         <Text>Select Category/Categories: </Text>
       </View>
 
+      {/* Dropdown list */}
       <View style={styles.container}>
         {category.map(item => (
           <TouchableOpacity
             key={item}
             onPress={() => toggleSelection(item)}
             style={styles.item}>
+            {/* Checkbox */}
             <View
               style={[
                 styles.checkbox,
@@ -34,6 +42,7 @@ const Dropdown = ({category, value, onValueChange}: DropdownProps) => {
               ]}>
               {value.includes(item) && <Text style={styles.checkmark}>✓</Text>}
             </View>
+            {/* Category name */}
             <Text>{item}</Text>
           </TouchableOpacity>
         ))}
