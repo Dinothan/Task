@@ -1,7 +1,7 @@
-import {PayloadAction, createSlice} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 import {Task} from '../../types/task';
 
-interface TasksProps {
+export interface TasksProps {
   taskList: Task[];
   loading: boolean;
   error: string | null;
