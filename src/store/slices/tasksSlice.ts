@@ -20,9 +20,12 @@ const tasksSlice = createSlice({
     fetchAllTask(state, action: PayloadAction<Task[]>) {
       state.taskList = action.payload;
     },
+    updateTask(state, action: PayloadAction<Task[]>) {
+      state.taskList = action.payload;
+    },
   },
 });
 
-export const {fetchAllTask} = tasksSlice.actions;
+export const {fetchAllTask, updateTask} = tasksSlice.actions;
 
 export default tasksSlice.reducer;

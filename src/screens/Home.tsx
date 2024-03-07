@@ -5,7 +5,7 @@ import TaskListComponent from '../components/TaskList';
 import {useAppDispatch, useAppSelector} from '../hooks/hooks';
 import Spinner from '../components/Spinner';
 import ErrorComponent from '../components/Error';
-import {fetchAllTask} from '../store/slices/tasksSlice';
+import {fetchAllTask, updateTask} from '../store/slices/tasksSlice';
 import {Task} from '../types/task';
 import Header from '../components/Header';
 import {fetchAllCategory} from '../store/slices/categorySlice';
@@ -54,11 +54,31 @@ const HomeScreen = ({navigation}: any) => {
         title: cat,
         data: taskList.filter(
           task =>
-            Array.isArray(task.category) &&
+            Array.isArray(task?.category) &&
             task.category.some(c => c.toLowerCase() === cat.toLowerCase()),
         ),
       }));
   }, [categoryList, taskList]);
+
+  const handleTaskCompletion = useCallback(
+    (id: string) => {
+      const task = taskList.find(task => task.id.toString() === id);
+
+      if (task) {
+        const updatedTask = {
+          ...task,
+          status: !task?.status,
+        };
+        dispatch(
+          updateTask([
+            ...taskList.filter(task => task.id.toString() !== id),
+            updatedTask,
+          ]),
+        );
+      }
+    },
+    [dispatch, taskList],
+  );
 
   return (
     <ScrollView>
@@ -75,6 +95,7 @@ const HomeScreen = ({navigation}: any) => {
                   TaskList={res.data}
                   navigation={navigation}
                   setNewTaskList={getTaskList}
+                  handleTaskCompletion={handleTaskCompletion}
                 />
               )}
             </View>

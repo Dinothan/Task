@@ -9,6 +9,7 @@ const TaskListComponent = ({
   TaskList,
   navigation,
   setNewTaskList,
+  handleTaskCompletion,
 }: TaskListProps) => {
   const handleNavigateToAddTask = (task: Task) => {
     navigation.navigate('Home', {
@@ -42,10 +43,17 @@ const TaskListComponent = ({
             <View style={styles.item}>
               <List.Item title={`Description: ${item.description}`} />
               <List.Item title={`Due Date: ${item.dueDate}`} />
+              <List.Item
+                title={`Status: ${item?.status === true ? 'DONE' : 'TODO'}`}
+              />
             </View>
             <ButtonIcon
               handleonPress={() => handleNavigateToAddTask(item)}
               icon="playlist-edit"
+            />
+            <ButtonIcon
+              handleonPress={() => handleTaskCompletion(item.id.toString())}
+              icon="account-edit"
             />
             <ButtonIcon
               handleonPress={() => handleDeleteTask(item.id.toString())}
